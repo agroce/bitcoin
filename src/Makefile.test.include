@@ -274,6 +274,7 @@ test_fuzz_fuzz_SOURCES = \
  test/fuzz/primitives_transaction.cpp \
  test/fuzz/process_message.cpp \
  test/fuzz/process_messages.cpp \
+ test/fuzz/process_messages_focused.cpp \
  test/fuzz/protocol.cpp \
  test/fuzz/psbt.cpp \
  test/fuzz/random.cpp \
