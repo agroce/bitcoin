@@ -71,10 +71,10 @@ FUZZ_TARGET_INIT(process_messages_focused, initialize_process_messages_focused)
     }
 
     while (fuzzed_data_provider.ConsumeBool()) {
-	size_t index = fuzzed_data_provider.ConsumeIntegralInRange<int32_t>(0, msg_types);
-	while (!swarm[index]) {
-	  index = (index + 1) % msg_types;
-	}
+        size_t index = fuzzed_data_provider.ConsumeIntegralInRange<int32_t>(0, msg_types);
+        while (!swarm[index]) {
+            index = (index + 1) % msg_types;
+        }
         const std::string random_message_type{getAllNetMessageTypes()[index]};
 
         const auto mock_time = ConsumeTime(fuzzed_data_provider);
