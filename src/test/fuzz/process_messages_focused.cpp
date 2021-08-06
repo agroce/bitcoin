@@ -46,8 +46,9 @@ FUZZ_TARGET_INIT(process_messages_focused, initialize_process_messages_focused)
     }
 
     if (swarm_count == 0) {
-      size_t index = fuzzed_data_provider.ConsumeBytes<uint8_t>(1)[0] % msg_types;
-      swarm[index] = true;
+        auto index_bytes = fuzzed_data_provider.ConsumeBytes<uint8_t>(1);
+        size_t index = (index_bytes.size() == 0 ? 0 : index_bytes[0] % msg_types);
+        swarm[index] = true;
     }
 
     ConnmanTestMsg& connman = *static_cast<ConnmanTestMsg*>(g_setup->m_node.connman.get());
@@ -71,7 +72,8 @@ FUZZ_TARGET_INIT(process_messages_focused, initialize_process_messages_focused)
     }
 
     while (fuzzed_data_provider.ConsumeBool()) {
-        size_t index = fuzzed_data_provider.ConsumeBytes<uint8_t>(1)[0] % msg_types;
+        auto index_bytes = fuzzed_data_provider.ConsumeBytes<uint8_t>(1);
+        size_t index = (index_bytes.size() == 0 ? 0 : index_bytes[0] % msg_types);
 	
         while (!swarm[index]) {
             index = (index + 1) % msg_types;

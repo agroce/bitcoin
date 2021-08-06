@@ -1,4 +1,6 @@
+import os
 import sys
+import glob
 
 types_s = b"""
 namespace NetMsgType {
@@ -45,29 +47,29 @@ for t in types_s1:
     if b'"' in t:
         types.append(t.split(b'"')[1])
 
-#For now just use an "everything goes" swarm
-new_data = b""
-for i in range(len(types)):
-    new_data.append(b"\xff")
+for f in glob.glob(sys.argv[1]):
+        
+    #For now just use an "everything goes" swarm
+    new_data = b""
+    for i in range(len(types)):
+        new_data += b"\xff"
 
-with open(sys.argv[1], "rb") as original:
-    data = original.read()
-print (type(data))
+    with open(f, "rb") as original:
+        data = original.read()
+        
+    pos = 0
+    while (pos < len(data)):
+        t_pos = data.find(b"\x00", pos)
+        if t_pos != -1:
+            t = data[pos:t_pos]
+            if t in types:
+                which_t = types.index(t)
+                new_data += bytes(chr(which_t), encoding="utf-8")
+                pos = t_pos + 1
+            else:
+                new_data += data[pos:pos+1]
+        pos += 1
 
-pos = 0
-while (pos < len(data)):
-    t_pos = data.find(b"\x00", pos)
-    if t_pos != -1:
-        t = data[pos:t_pos]
-        if t in types:
-            print("TYPE:", t, "@", pos)
-            which_t = types.index(t)
-            new_data += bytes(chr(which_t), encoding="utf-8")
-            pos = t_pos + 1
-            
-    else:
-       new_data += data[pos]   
-    pos += 1
-
-with (open(sys.argv[2], "wb") as new:
-      new.write(new_data)
+    print("converted", f)
+    with open("converted." + os.path.basename(f), "wb") as new:
+          new.write(new_data)
