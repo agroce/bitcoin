@@ -47,8 +47,24 @@ for t in types_s1:
     if b'"' in t:
         types.append(t.split(b'"')[1])
 
-for f in glob.glob(sys.argv[1]):
+print(len(types))
         
+conversions = []
+index = 0
+for t in types:
+    conversions.append((t + b"\x00", bytes(chr(index), encoding="utf-8")))
+    index += 1
+        
+converted = 0
+todo = len(glob.glob(sys.argv[1]))
+        
+for f in glob.glob(sys.argv[1]):
+    converted += 1
+    
+    if os.path.exists("converted" + os.path.basename(f)):
+        print("already converted", f)
+        continue
+    
     #For now just use an "everything goes" swarm
     new_data = b""
     for i in range(len(types)):
@@ -56,20 +72,12 @@ for f in glob.glob(sys.argv[1]):
 
     with open(f, "rb") as original:
         data = original.read()
-        
-    pos = 0
-    while (pos < len(data)):
-        t_pos = data.find(b"\x00", pos)
-        if t_pos != -1:
-            t = data[pos:t_pos]
-            if t in types:
-                which_t = types.index(t)
-                new_data += bytes(chr(which_t), encoding="utf-8")
-                pos = t_pos + 1
-            else:
-                new_data += data[pos:pos+1]
-        pos += 1
 
-    print("converted", f)
+    for (corig, cnew) in conversions:
+        data = data.replace(corig, cnew)
+    new_data += data
+        
+    print("converted", f, converted, "/", todo)
+    sys.stdout.flush()
     with open("converted." + os.path.basename(f), "wb") as new:
           new.write(new_data)
