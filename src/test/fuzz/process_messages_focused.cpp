@@ -35,6 +35,21 @@ FUZZ_TARGET_INIT(process_messages_focused, initialize_process_messages_focused)
 {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
 
+    const int msg_types = (int32_t)getAllNetMessageTypes().size();
+    std::vector<bool> swarm;
+    size_t swarm_count = 0;
+    for (int i = 0; i < msg_types; i++) {
+        swarm.push_back(fuzzed_data_provider.ConsumeBool());
+        if (swarm[i]) {
+            swarm_count += 1;
+        }
+    }
+
+    if (swarm_count == 0) {
+      size_t index = fuzzed_data_provider.ConsumeBytes<uint8_t>(1)[0] % msg_types;
+      swarm[index] = true;
+    }
+
     ConnmanTestMsg& connman = *static_cast<ConnmanTestMsg*>(g_setup->m_node.connman.get());
     TestChainState& chainstate = *static_cast<TestChainState*>(&g_setup->m_node.chainman->ActiveChainstate());
     SetMockTime(1610000000); // any time to successfully reset ibd
@@ -55,23 +70,9 @@ FUZZ_TARGET_INIT(process_messages_focused, initialize_process_messages_focused)
         connman.AddTestNode(p2p_node);
     }
 
-    const int msg_types = (int32_t)getAllNetMessageTypes().size();
-    std::vector<bool> swarm;
-    size_t swarm_count = 0;
-    for (int i = 0; i < msg_types; i++) {
-        swarm.push_back(fuzzed_data_provider.ConsumeBool());
-        if (swarm[i]) {
-            swarm_count += 1;
-        }
-    }
-
-    if (swarm_count == 0) {
-      size_t index = fuzzed_data_provider.ConsumeIntegralInRange<int32_t>(0, msg_types);
-      swarm[index] = true;
-    }
-
     while (fuzzed_data_provider.ConsumeBool()) {
-        size_t index = fuzzed_data_provider.ConsumeIntegralInRange<int32_t>(0, msg_types);
+        size_t index = fuzzed_data_provider.ConsumeBytes<uint8_t>(1)[0] % msg_types;
+	
         while (!swarm[index]) {
             index = (index + 1) % msg_types;
         }
