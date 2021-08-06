@@ -59,10 +59,10 @@ FUZZ_TARGET_INIT(process_messages_focused, initialize_process_messages_focused)
     std::vector<bool> swarm;
     size_t swarm_count = 0;
     for (int i = 0; i < msg_types; i++) {
-      swarm.push_back(fuzzed_data_provider.ConsumeBool());
-      if (swarm[i]) {
-	swarm_count += 1;
-      }
+        swarm.push_back(fuzzed_data_provider.ConsumeBool());
+        if (swarm[i]) {
+            swarm_count += 1;
+        }
     }
 
     if (swarm_count == 0) {
