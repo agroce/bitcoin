@@ -55,9 +55,26 @@ FUZZ_TARGET_INIT(process_messages_focused, initialize_process_messages_focused)
         connman.AddTestNode(p2p_node);
     }
 
+    const int msg_types = (int32_t)getAllNetMessageTypes().size();
+    std::vector<bool> swarm;
+    size_t swarm_count = 0;
+    for (int i = 0; i < msg_types; i++) {
+      swarm.push_back(fuzzed_data_provider.ConsumeBool());
+      if (swarm[i]) {
+	swarm_count += 1;
+      }
+    }
+
+    if (swarm_count == 0) {
+      size_t index = fuzzed_data_provider.ConsumeIntegralInRange<int32_t>(0, msg_types);
+      swarm[index] = true;
+    }
+
     while (fuzzed_data_provider.ConsumeBool()) {
-        const std::string random_message_type1; // {fuzzed_data_provider.ConsumeBytesAsString(CMessageHeader::COMMAND_SIZE).c_str()};
-	size_t index = fuzzed_data_provider.ConsumeIntegralInRange(0, (int)(getAllNetMessageTypes().size())-1);
+	size_t index = fuzzed_data_provider.ConsumeIntegralInRange<int32_t>(0, msg_types);
+	while (!swarm[index]) {
+	  index = (index + 1) % msg_types;
+	}
         const std::string random_message_type{getAllNetMessageTypes()[index]};
 
         const auto mock_time = ConsumeTime(fuzzed_data_provider);
